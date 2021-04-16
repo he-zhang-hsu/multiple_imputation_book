@@ -1,0 +1,67 @@
+# imputation.plot;
+
+# plot the sample trajectory plot;
+sample=scan(file=("h:\\files_to_copy\\yulei_thesis\\chapter5\\data\\psid\\imputed_data\\individual.dat"), na.strings=".");
+
+sample_matrix=matrix(sample, nrow=19, ncol=20);
+year=seq(from=1979, to=1997, by=1);
+
+matplot(x=year, y=sample_matrix, type="l", lty=rep(1,19), col=rep(1,19), ylab="LOGINR", main="Trajectory plot");
+
+
+part_combine_impu=scan(file=("h:\\files_to_copy\\yulei_thesis\\chapter5\\data\\psid\\imputed_data\\part_combine_impu.dat"), what=list(subject=0, impu=0, individual=0, imputed=0, observed=0, year=0), na.strings=".");
+
+combine=cbind(part_combine_impu$subject, part_combine_impu$impu, part_combine_impu$individual,
+part_combine_impu$imputed, part_combine_impu$observed, part_combine_impu$year);
+
+data_11=combine[1:19,];
+
+# plot 11;
+ matplot(x=data_11[,6], y=data_11[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+
+data_12=combine[20:38,];
+
+# plot 12;
+ matplot(x=data_12[,6], y=data_12[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+data_13=combine[39:57,];
+
+# plot 13;
+ matplot(x=data_13[,6], y=data_13[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+
+data_21=combine[58:76,];
+
+# plot 21;
+ matplot(x=data_21[,6], y=data_21[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+data_22=combine[77:95,];
+
+# plot 22;
+matplot(x=data_22[,6], y=data_22[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+data_23=combine[96:114,];
+
+# plot 23;
+matplot(x=data_23[,6], y=data_23[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+data_31=combine[115:133,];
+
+# plot 31;
+matplot(x=data_31[,6], y=data_31[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+data_32=combine[134:152,];
+
+# plot 32;
+matplot(x=data_32[,6], y=data_32[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+data_33=combine[153:171,];
+
+# plot 33;
+matplot(x=data_33[,6], y=data_33[,3:5], ylim=c(0,4), lty=c(1,100,100),type="lpp", pch=c(3,3,16), col=rep(1,3), lwd=c(1,3,3), xlab="", ylab="", main="");
+
+
+
+
+
