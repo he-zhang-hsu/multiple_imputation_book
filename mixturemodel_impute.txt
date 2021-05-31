@@ -1,0 +1,59 @@
+################
+#  WinBUGS code for Finite Mixture model (Carlin and Louis, 2008, Example 2.19)
+#  data are "eyes" data from WinBUGS manual
+################
+
+model
+{
+for( i in 1 : N ) {
+   y_miss[i] ~ dnorm(mu[i], tau[i])
+   mu[i] <- lambda[T[i]]
+   tau[i] <- gamma[T[i]]
+   T[i] ~ dcat(P[])
+   y_impute[i] <- y_miss[i]
+   }
+P[1:2] ~ ddirch(alpha[])
+theta ~ dnorm(0.0, 1.0E-6) I(0.0, )
+lambda[2] <- lambda[1] + theta
+lambda[1] ~ dnorm(0.0, 1.0E-6)
+mean1 <- lambda[1];
+mean2 <- lambda[2];
+P1 <- P[1];
+
+#Ystar1 ~ dnorm(lambda[1], tau)
+#Ystar2 ~ dnorm(lambda[2], tau)
+#Tstar ~ dcat(P[]);  astar <- Tstar-1
+#Ystar <- Ystar1*(1-astar) + Ystar2*astar
+
+sigma1 ~ dunif(0.01,10000)   #  vague Gelman prior for sigma
+gamma[1]<- 1/(sigma1*sigma1)
+sigma2 ~ dunif(0.01,10000)   #  vague Gelman prior for sigma
+gamma[2]<- 1/(sigma2*sigma2)
+
+}
+
+# DATA:
+# list(N=10196, alpha=c(1,1))
+
+
+# list(y = c(529.0, 530.0, 532.0, 533.1, 533.4,
+ #          533.6, 533.7, 534.1, 534.8, 535.3,
+  #         535.4, 535.9, 536.1, 536.3, 536.4,
+   #        536.6, 537.0, 537.4, 537.5, 538.3,
+   #        538.5, 538.6, 539.4, 539.6, 540.4,
+   #        540.8, 542.0, 542.8, 543.0, 543.5,
+   #        543.8, 543.9, 545.3, 546.2, 548.8,
+   #        548.7, 548.9, 549.0, 549.4, 549.9,
+   #        550.6, 551.2, 551.4, 551.5, 551.6,
+   #        552.8, 552.9,553.2), N = 48, alpha = c(1, 1),
+   # T = c(1, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+   #       NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+   #       NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+   #       NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
+   #       NA, NA, NA, NA, NA, NA, NA, 2))
+
+
+# INITS (two sets):
+
+# list(lambda = c(1500, NA), theta = 1500, sigma1 = 400, sigma2=500, P=c(0.5, 0.5))
+# list(lambda = c(535, NA), theta =15, sigma1 = 1.0, sigma2=0.5, P=c(0.2, 0.8))

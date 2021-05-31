@@ -1,0 +1,427 @@
+# Example 6.3
+
+library(openxlsx)
+library(mice);
+library(norm);
+# adaptive metroplis rejection sampling;
+library(HI);
+# include the library MASS for generating from multivariate normal distribution;
+library(MASS);
+# include the library msm and bayesm for using the function of drawing truncated normal
+# distribution;
+library(msm);
+library(bayesm);
+library(mvtnorm);
+library(sn);
+library(arm);
+# library(MCMCpack);
+library(cat);
+library(jomo);
+
+
+# read the data set from Zhou et al. 2017;
+cdat<-read.xlsx("C:\\Users\\Guanghui He\\Personal\\Yulei\\research\\MIbook\\chapter4_univariate_model_parametric\\program\\paper1_dataset.xlsx", sheet=1, startRow=1, colNames=T);
+
+# fetch the outcome variable;
+table(cdat$carercvd);
+
+carercvd=as.numeric(cdat$carercvd);
+carercvd_obs=carercvd[!is.na(carercvd)];
+
+rowobs=length(carercvd);
+mis_no=sum(is.na(carercvd));
+obs_no=rowobs-mis_no;
+
+
+# create a binary outcome variable of carercvd;
+carercvd_23=carercvd;
+# collapse the category 2 and 3;
+carercvd_23[carercvd_23>=2]=2;
+
+# recode carercvd_23 into a binary indicator;
+carercvd_23=carercvd_23-1;
+
+# 1 very satisfied and 0 somewhat satisfied or not at all satisfied;
+
+carercvd_23=1-carercvd_23;
+
+# fetch the covariates;
+# gender;
+sex=(cdat$sex);
+
+# general health;
+genhlth=cdat$genhlth;
+
+# education level;
+X_educag=cdat$X_educag;
+
+# having health coverage;
+
+hlthpln1=cdat$hlthpln1;
+
+# having delayed health care;
+delaym=cdat$delaym;
+
+# coverage=1 yes, 0 no;
+coverage=2-hlthpln1;
+
+
+selfhealth=genhlth;
+selfhealth[selfhealth<=3]=1;
+selfhealth[selfhealth>3]=0;
+
+table(selfhealth);
+table(coverage);
+table(delaym);
+
+# the above programs creat the dataset;
+# with four binary variables;
+# carercvd (1: very satisfied; 0: somewhat or not satisfied;
+# selfhealth (1: excellent/very good/good; 0: fair/poor);
+# coverage (1: yes; 0: no);
+# delaym (1:yes; 0: no);
+
+ori_data=cbind(carercvd_23, selfhealth, coverage, delaym);
+
+# creat 10% missing data for selfhealth, coverage, and delaym;
+set.seed(197789);
+
+miss_indi=matrix(rbinom(n=3*rowobs, size=1, prob=0.1), nrow=rowobs, ncol=3);
+
+# set some of the ori_data as missing values;
+ori_data[,2:4][miss_indi==1]=NA;
+
+# complete-case analysis;
+# CC results in Table 6.2
+cc_est_mat=cc_var_mat=rep(NA,9);
+ori_data_1=ori_data[!is.na(ori_data[,1]),1];
+ori_data_cc=ori_data[complete.cases(ori_data),];
+ori_data_cc_111=ori_data_cc[ori_data_cc[,2]==1 & ori_data_cc[,3]==1 & ori_data_cc[,4]==1,];
+ori_data_cc_110=ori_data_cc[ori_data_cc[,2]==1 & ori_data_cc[,3]==1 & ori_data_cc[,4]==0,];
+ori_data_cc_101=ori_data_cc[ori_data_cc[,2]==1 & ori_data_cc[,3]==0 & ori_data_cc[,4]==1,];
+ori_data_cc_100=ori_data_cc[ori_data_cc[,2]==1 & ori_data_cc[,3]==0 & ori_data_cc[,4]==0,];
+ori_data_cc_011=ori_data_cc[ori_data_cc[,2]==0 & ori_data_cc[,3]==1 & ori_data_cc[,4]==1,];
+ori_data_cc_010=ori_data_cc[ori_data_cc[,2]==0 & ori_data_cc[,3]==1 & ori_data_cc[,4]==0,];
+ori_data_cc_001=ori_data_cc[ori_data_cc[,2]==0 & ori_data_cc[,3]==0 & ori_data_cc[,4]==1,];
+ori_data_cc_000=ori_data_cc[ori_data_cc[,2]==0 & ori_data_cc[,3]==0 & ori_data_cc[,4]==0,];
+
+nrow(ori_data_cc)/rowobs;
+
+cc_est_mat[1]=mean(ori_data_1);
+cc_var_mat[1]=var(ori_data_1)/length(ori_data_1);
+
+cc_est_mat[2]=mean(ori_data_cc_111[,1]);
+cc_var_mat[2]=var(ori_data_cc_111[,1])/nrow(ori_data_cc_111);
+
+cc_est_mat[3]=mean(ori_data_cc_110[,1]);
+cc_var_mat[3]=var(ori_data_cc_110[,1])/nrow(ori_data_cc_110);
+
+cc_est_mat[4]=mean(ori_data_cc_101[,1]);
+cc_var_mat[4]=var(ori_data_cc_101[,1])/nrow(ori_data_cc_101);
+
+cc_est_mat[5]=mean(ori_data_cc_100[,1]);
+cc_var_mat[5]=var(ori_data_cc_100[,1])/nrow(ori_data_cc_100);
+
+cc_est_mat[6]=mean(ori_data_cc_011[,1]);
+cc_var_mat[6]=var(ori_data_cc_011[,1])/nrow(ori_data_cc_011);
+
+cc_est_mat[7]=mean(ori_data_cc_010[,1]);
+cc_var_mat[7]=var(ori_data_cc_010[,1])/nrow(ori_data_cc_010);
+
+cc_est_mat[8]=mean(ori_data_cc_001[,1]);
+cc_var_mat[8]=var(ori_data_cc_001[,1])/nrow(ori_data_cc_001);
+
+cc_est_mat[9]=mean(ori_data_cc_000[,1]);
+cc_var_mat[9]=var(ori_data_cc_000[,1])/nrow(ori_data_cc_000);
+
+
+# cc_summary_matrix contains the proportions;
+# and their 95% CIs
+cc_summary_matrix=matrix(NA,9,3);
+
+cc_summary_matrix[,1]=cc_est_mat;
+cc_summary_matrix[,2]=cc_est_mat-1.96*sqrt(cc_var_mat);
+cc_summary_matrix[,3]=cc_est_mat+1.96*sqrt(cc_var_mat);
+
+cc_summary_matrix;
+
+
+# prepare for the imputation;
+# library cat takes 1/2 factors;
+# make the 1/0 binary variables to 1/2 factors;
+
+ori_data_new=ori_data+1;
+
+# using library cat to do the imputation based on log-linear models;
+setup=prelim.cat(ori_data_new);
+
+# saturated model;
+# SMI method
+
+theta_saturated=em.cat(setup);
+
+mi_no=50;
+sat_est_mat=sat_var_mat=matrix(NA, nrow=9, ncol=mi_no);
+
+
+for (i in 1:mi_no)
+{
+
+rngseed(i);
+
+theta_s=da.cat(setup,theta_saturated,steps=200,showits=T);
+
+# imputation;
+ori_data_new_imp=imp.cat(setup,theta_s); 
+ori_data_imp=ori_data_new_imp-1;
+
+# marginal mean of carercvd;
+sat_est_mat[1,i]=mean(ori_data_imp[,1]);
+sat_var_mat[1,i]=var(ori_data_imp[,1])/rowobs;
+
+# means of carercvd across 8 groups;
+ori_data_imp_111=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==1 & ori_data_imp[,4]==1,];
+ori_data_imp_110=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==1 & ori_data_imp[,4]==0,];
+ori_data_imp_101=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==0 & ori_data_imp[,4]==1,];
+ori_data_imp_100=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==0 & ori_data_imp[,4]==0,];
+ori_data_imp_011=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==1 & ori_data_imp[,4]==1,];
+ori_data_imp_010=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==1 & ori_data_imp[,4]==0,];
+ori_data_imp_001=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==0 & ori_data_imp[,4]==1,];
+ori_data_imp_000=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==0 & ori_data_imp[,4]==0,];
+
+sat_est_mat[2,i]=mean(ori_data_imp_111[,1]);
+sat_var_mat[2,i]=var(ori_data_imp_111[,1])/nrow(ori_data_imp_111);
+
+sat_est_mat[3,i]=mean(ori_data_imp_110[,1]);
+sat_var_mat[3,i]=var(ori_data_imp_110[,1])/nrow(ori_data_imp_110);
+
+sat_est_mat[4,i]=mean(ori_data_imp_101[,1]);
+sat_var_mat[4,i]=var(ori_data_imp_101[,1])/nrow(ori_data_imp_101);
+
+sat_est_mat[5,i]=mean(ori_data_imp_100[,1]);
+sat_var_mat[5,i]=var(ori_data_imp_100[,1])/nrow(ori_data_imp_100);
+
+sat_est_mat[6,i]=mean(ori_data_imp_011[,1]);
+sat_var_mat[6,i]=var(ori_data_imp_011[,1])/nrow(ori_data_imp_011);
+
+sat_est_mat[7,i]=mean(ori_data_imp_010[,1]);
+sat_var_mat[7,i]=var(ori_data_imp_010[,1])/nrow(ori_data_imp_010);
+
+sat_est_mat[8,i]=mean(ori_data_imp_001[,1]);
+sat_var_mat[8,i]=var(ori_data_imp_001[,1])/nrow(ori_data_imp_001);
+
+sat_est_mat[9,i]=mean(ori_data_imp_000[,1]);
+sat_var_mat[9,i]=var(ori_data_imp_000[,1])/nrow(ori_data_imp_000);
+
+
+
+}
+
+
+# summarize the inference;
+sat_summary_matrix=matrix(NA,9,4);
+for (i in 1:9)
+{
+marginal_summary=pool.scalar(sat_est_mat[i,], sat_var_mat[i,], n=rowobs);
+marginal_mi_mean=marginal_summary$qbar;
+marginal_mi_var=marginal_summary$t;
+marginal_mi_df=marginal_summary$df;
+marginal_mi_f=marginal_summary$f;
+
+sat_summary_matrix[i,1]=marginal_mi_mean;
+sat_summary_matrix[i,2]=marginal_mi_mean-1.96*sqrt(marginal_mi_var);
+sat_summary_matrix[i,3]=marginal_mi_mean+1.96*sqrt(marginal_mi_var);
+sat_summary_matrix[i,4]=marginal_mi_f;
+
+}
+
+# Results in Table 6.2
+# The matrix contains the proportion estimates and their 95% CI
+# as well as the fraction of missing information;
+sat_summary_matrix;
+
+# multiple imputation using main effects only;
+# MMI method
+main_margins=c(1,0,2,0,3,0,4);
+theta_margin=ecm.cat(setup, margins=main_margins);
+
+mi_no=50;
+main_est_mat=main_var_mat=matrix(NA, nrow=9, ncol=mi_no);
+
+
+for (i in 1:mi_no)
+{
+
+rngseed(i);
+
+theta_m=dabipf(setup,main_margins, theta_margin,steps=200,showits=T);
+
+# imputation;
+ori_data_new_imp=imp.cat(setup,theta_m); 
+ori_data_imp=ori_data_new_imp-1;
+
+# marginal mean of carercvd;
+main_est_mat[1,i]=mean(ori_data_imp[,1]);
+main_var_mat[1,i]=var(ori_data_imp[,1])/rowobs;
+
+# means of carercvd across 8 groups;
+ori_data_imp_111=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==1 & ori_data_imp[,4]==1,];
+ori_data_imp_110=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==1 & ori_data_imp[,4]==0,];
+ori_data_imp_101=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==0 & ori_data_imp[,4]==1,];
+ori_data_imp_100=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==0 & ori_data_imp[,4]==0,];
+ori_data_imp_011=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==1 & ori_data_imp[,4]==1,];
+ori_data_imp_010=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==1 & ori_data_imp[,4]==0,];
+ori_data_imp_001=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==0 & ori_data_imp[,4]==1,];
+ori_data_imp_000=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==0 & ori_data_imp[,4]==0,];
+
+main_est_mat[2,i]=mean(ori_data_imp_111[,1]);
+main_var_mat[2,i]=var(ori_data_imp_111[,1])/nrow(ori_data_imp_111);
+
+main_est_mat[3,i]=mean(ori_data_imp_110[,1]);
+main_var_mat[3,i]=var(ori_data_imp_110[,1])/nrow(ori_data_imp_110);
+
+main_est_mat[4,i]=mean(ori_data_imp_101[,1]);
+main_var_mat[4,i]=var(ori_data_imp_101[,1])/nrow(ori_data_imp_101);
+
+main_est_mat[5,i]=mean(ori_data_imp_100[,1]);
+main_var_mat[5,i]=var(ori_data_imp_100[,1])/nrow(ori_data_imp_100);
+
+main_est_mat[6,i]=mean(ori_data_imp_011[,1]);
+main_var_mat[6,i]=var(ori_data_imp_011[,1])/nrow(ori_data_imp_011);
+
+main_est_mat[7,i]=mean(ori_data_imp_010[,1]);
+main_var_mat[7,i]=var(ori_data_imp_010[,1])/nrow(ori_data_imp_010);
+
+main_est_mat[8,i]=mean(ori_data_imp_001[,1]);
+main_var_mat[8,i]=var(ori_data_imp_001[,1])/nrow(ori_data_imp_001);
+
+main_est_mat[9,i]=mean(ori_data_imp_000[,1]);
+main_var_mat[9,i]=var(ori_data_imp_000[,1])/nrow(ori_data_imp_000);
+
+
+
+}
+
+
+# summarize the inference;
+main_summary_matrix=matrix(NA,9,4);
+for (i in 1:9)
+{
+marginal_summary=pool.scalar(main_est_mat[i,], main_var_mat[i,], n=rowobs);
+marginal_mi_mean=marginal_summary$qbar;
+marginal_mi_var=marginal_summary$t;
+marginal_mi_df=marginal_summary$df;
+marginal_mi_f=marginal_summary$f;
+
+main_summary_matrix[i,1]=marginal_mi_mean;
+main_summary_matrix[i,2]=marginal_mi_mean-1.96*sqrt(marginal_mi_var);
+main_summary_matrix[i,3]=marginal_mi_mean+1.96*sqrt(marginal_mi_var);
+main_summary_matrix[i,4]=marginal_mi_f;
+}
+
+# Results in Table 6.2
+# The matrix contains the proportion estimates and their 95% CI
+# as well as the fraction of missing information;
+main_summary_matrix;
+
+
+# multiple imputation using probit models;
+# PMI method
+# implemented by R jomo;
+
+mi_no=50;
+
+prob_est_mat=prob_var_mat=matrix(NA, nrow=9, ncol=mi_no);
+
+# data processing;
+
+ori_data_factor=as.data.frame(ori_data);
+
+ori_data_factor$carercvd_23<-as.factor(ori_data_factor$carercvd_23);
+ori_data_factor$selfhealth<-as.factor(ori_data_factor$selfhealth);
+ori_data_factor$coverage<-as.factor(ori_data_factor$coverage);
+ori_data_factor$delaym<-as.factor(ori_data_factor$delaym);
+
+nburn=1000;
+
+imp=jomo1cat(ori_data_factor, rep(2,4), X=NULL, beta.start=NULL, l1cov.start=NULL, l1cov.prior=NULL, nburn=nburn, nbetween=200, nimp=mi_no,output=1, out.iter=10)
+
+
+for (i in 1:mi_no)
+{
+
+# fetch the imputation;
+
+ori_data_imp=imp[imp$Imputation==i,1:4];
+ori_data_imp[,1]=as.numeric(ori_data_imp[,1]);
+ori_data_imp[,2]=as.numeric(ori_data_imp[,2]);
+ori_data_imp[,3]=as.numeric(ori_data_imp[,3]);
+ori_data_imp[,4]=as.numeric(ori_data_imp[,4]);
+
+ori_data_imp=ori_data_imp-1;
+
+# marginal mean of carercvd;
+prob_est_mat[1,i]=mean(ori_data_imp[,1]);
+prob_var_mat[1,i]=var(ori_data_imp[,1])/rowobs;
+
+# means of carercvd across 8 groups;
+ori_data_imp_111=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==1 & ori_data_imp[,4]==1,];
+ori_data_imp_110=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==1 & ori_data_imp[,4]==0,];
+ori_data_imp_101=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==0 & ori_data_imp[,4]==1,];
+ori_data_imp_100=ori_data_imp[ori_data_imp[,2]==1 & ori_data_imp[,3]==0 & ori_data_imp[,4]==0,];
+ori_data_imp_011=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==1 & ori_data_imp[,4]==1,];
+ori_data_imp_010=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==1 & ori_data_imp[,4]==0,];
+ori_data_imp_001=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==0 & ori_data_imp[,4]==1,];
+ori_data_imp_000=ori_data_imp[ori_data_imp[,2]==0 & ori_data_imp[,3]==0 & ori_data_imp[,4]==0,];
+
+prob_est_mat[2,i]=mean(ori_data_imp_111[,1]);
+prob_var_mat[2,i]=var(ori_data_imp_111[,1])/nrow(ori_data_imp_111);
+
+prob_est_mat[3,i]=mean(ori_data_imp_110[,1]);
+prob_var_mat[3,i]=var(ori_data_imp_110[,1])/nrow(ori_data_imp_110);
+
+prob_est_mat[4,i]=mean(ori_data_imp_101[,1]);
+prob_var_mat[4,i]=var(ori_data_imp_101[,1])/nrow(ori_data_imp_101);
+
+prob_est_mat[5,i]=mean(ori_data_imp_100[,1]);
+prob_var_mat[5,i]=var(ori_data_imp_100[,1])/nrow(ori_data_imp_100);
+
+prob_est_mat[6,i]=mean(ori_data_imp_011[,1]);
+prob_var_mat[6,i]=var(ori_data_imp_011[,1])/nrow(ori_data_imp_011);
+
+prob_est_mat[7,i]=mean(ori_data_imp_010[,1]);
+prob_var_mat[7,i]=var(ori_data_imp_010[,1])/nrow(ori_data_imp_010);
+
+prob_est_mat[8,i]=mean(ori_data_imp_001[,1]);
+prob_var_mat[8,i]=var(ori_data_imp_001[,1])/nrow(ori_data_imp_001);
+
+prob_est_mat[9,i]=mean(ori_data_imp_000[,1]);
+prob_var_mat[9,i]=var(ori_data_imp_000[,1])/nrow(ori_data_imp_000);
+
+}
+
+
+# summarize the inference;
+prob_summary_matrix=matrix(NA,9,4);
+for (i in 1:9)
+{
+marginal_summary=pool.scalar(prob_est_mat[i,], prob_var_mat[i,], n=rowobs);
+marginal_mi_mean=marginal_summary$qbar;
+marginal_mi_var=marginal_summary$t;
+marginal_mi_df=marginal_summary$df;
+marginal_mi_f=marginal_summary$f;
+
+prob_summary_matrix[i,1]=marginal_mi_mean;
+prob_summary_matrix[i,2]=marginal_mi_mean-1.96*sqrt(marginal_mi_var);
+prob_summary_matrix[i,3]=marginal_mi_mean+1.96*sqrt(marginal_mi_var);
+prob_summary_matrix[i,4]=marginal_mi_f;
+}
+
+# Results in Table 6.2
+# The matrix contains the proportion estimates and their 95% CI
+# as well as the fraction of missing information;
+prob_summary_matrix;
+
+
+# posterior estiamtes of the probit models;
+imp<-jomo1cat.MCMCchain(ori_data_factor, rep(2,4),nburn=nburn)

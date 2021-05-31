@@ -1,0 +1,38 @@
+# this model estimates the parameters of a logistic model
+# for missing values;
+MODEl   {			
+
+		# complete-data likelihood;
+			for( i in 1 : M ) {
+				y_miss[i] ~ dbern(p[i]);
+				logit(p[i]) <-beta0+beta1*x1_miss[i]+beta2*x2_miss[i];
+				x1_miss[i] ~ dnorm(mu, tau);
+				x2_miss[i] ~ dnorm(theta[i], psi);
+				theta[i] <- alpha0+alpha1*x1_miss[i]; 
+                                y_impute[i] <- y_miss[i];
+                                x1_impute[i] <- x1_miss[i];
+                                x2_impute[i] <- x2_miss[i];				
+				}
+					  
+		# sigma2<-1/tau;
+		
+			# prior for complete-model parameters;
+			beta0 ~ dnorm(0.0, 1.0E-3);
+			beta1 ~ dnorm(0.0, 1.0E-3);
+			beta2 ~ dnorm(0.0, 1.0E-3);
+			mu ~ dnorm(0.0, 1.0E-3);
+			alpha0 ~ dnorm(0.0, 1.0E-3);
+			alpha1 ~ dnorm(0.0, 1.0E-3);
+			tau ~ dgamma(1.0E-3, 1.0E-3);
+			psi ~ dgamma(1.0E-3, 1.0E-3);
+			
+			
+}
+
+
+
+# data
+#  DATA list( M = 1000)	
+	
+# initial values
+# INITIAL VALUES list(beta0=-1, beta1=0.5, beta2=0.5; mu=0, alpha0=0, alpha1=0, tau=1, psi=1)
