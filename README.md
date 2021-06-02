@@ -1,4 +1,4 @@
-To store code and datasets for Chapter 6: Multiple Imputation for Multivariate Missing Data: the Fully Conditional Specification Approach
+To store code and datasets for Chapter 7: Multiple Imputation for Multivariate Missing Data: the Fully Conditional Specification Approach
 
 Example7.3.R is a simulation program. It calls the WinBUGS program normal_fcs_cut.txt.
 
