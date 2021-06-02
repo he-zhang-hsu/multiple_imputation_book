@@ -1,0 +1,36 @@
+# this model estimates the parameters of a bivariate normal model;
+# for missing values;
+MODEl   {			
+
+		# complete-data likelihood;
+			for( i in 1 : M ) {
+				y_miss[i] ~ dnorm(mu_y[i], tau_y);
+				mu_y[i]<-beta0+beta1*x_miss_star[i];
+		          x_miss_star[i] <- cut(x_miss[i]);
+		          
+				x_miss[i] ~ dnorm(mu_x[i], tau_x);
+				mu_x[i]<-alpha0+alpha1*y_miss_star[i]; 		
+				y_miss_star[i] <- cut(y_miss[i]);
+		
+				y_impute[i] <- y_miss[i];
+				x_impute[i] <- x_miss[i];		
+				}
+					  
+		# sigma2<-1/tau;
+		
+			# prior for complete-model parameters;
+			beta0 ~ dnorm(0.0, 1.0E-3);
+			beta1 ~ dnorm(0.0, 1.0E-3);
+			alpha0 ~ dnorm(0.0, 1.0E-3);
+			alpha1 ~ dnorm(0.0, 1.0E-3);
+			tau_y ~ dgamma(1.0E-3, 1.0E-3);
+			tau_x ~ dgamma(1.0E-3, 1.0E-3);
+}
+
+
+
+# data
+#  DATA list( M = 1000)	
+	
+# initial values
+# INITIAL VALUES list(beta0=-2, beta1=1, alpha0=0; alpha1=0, tau_x=1, tau_y=1)
