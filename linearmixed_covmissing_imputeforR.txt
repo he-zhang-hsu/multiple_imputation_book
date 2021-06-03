@@ -1,0 +1,51 @@
+model
+	{
+		for( i in 1 : N ) {
+			for( j in 1 : T ) {
+			Y[i , j] ~ dnorm(Y_mu[i,j], tau.error);
+			Y_mu[i,j] <- alpha[i] + alpha.c + alpha.health*health[i]+alpha.edu*edu[i]+alpha.race*race[i]+ beta[i] * (x[j] - xbar) + beta.c*(x[j]-xbar);
+			}
+			race[i] ~ dbern(p_race[i]);
+			edu[i] ~ dbern(p_edu[i]);
+			health[i] ~ dbern(p_health[i]);
+			logit(p_race[i]) <- mu_race;
+			logit(p_edu[i]) <- alpha.edu.race+beta.edu.race*race[i];
+			logit(p_health[i]) <- alpha.health.edu.race+beta.health.edu*edu[i]+beta.health.race*race[i]+beta.health.edu.race*edu[i]*race[i];
+			
+			 alpha[i] ~ dnorm(0,tau.alpha);
+			beta[i] ~ dnorm(mu[i], tau.beta.alpha);
+			mu[i] <- slope*alpha[i];
+		}
+		
+		tau.error <- 1/(sigma.error*sigma.error);
+		tau.alpha <- 1/(sigma.alpha*sigma.alpha);
+		tau.beta.alpha <- 1/(sigma.beta.alpha*sigma.beta.alpha);
+		
+		# Choice of prior of random effects variances  
+		# Prior 1: uniform on SD
+		
+		
+		#Prior 2: (not recommended)
+		#tau.alpha ~ dgamma(0.001,0.001)
+		#tau.beta ~ dgamma(0.001,0.001)
+		
+		alpha.c ~ dnorm(0.0,1.0E-6);	 	
+		alpha.health ~ dnorm(0.0, 1.0E-6);
+		alpha.edu ~ dnorm(0.0, 1.0E-6);
+		alpha.race ~ dnorm(0.0, 1.0E-6);
+		beta.c ~ dnorm(0.0,1.0E-6);
+	   slope ~ dnorm(0.0, 1.0E-6);
+	   mu_race ~ dnorm(0.0, 1.0E-6);
+	   alpha.edu.race ~ dnorm(0.0, 1.0E-6);
+	   beta.edu.race ~ dnorm(0.0, 1.0E-6);
+	   alpha.health.edu.race ~ dnorm(0.0, 1.0E-6);
+	   beta.health.edu ~ dnorm(0.0, 1.0E-6);
+	   beta.health.race ~ dnorm(0.0, 1.0E-6);
+	   beta.health.edu.race ~ dnorm(0.0, 1.0E-6);
+      
+       sigma.error ~ dunif(0,100);
+	 	sigma.alpha~ dunif(0,100);
+		sigma.beta.alpha ~ dunif(0,100);
+		
+	#	alpha0 <- alpha.c - xbar * beta	
+	}
