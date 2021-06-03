@@ -1,0 +1,36 @@
+model
+	{
+		for( i in 1 : N ) {
+			for( j in 1 : T ) {
+				Y[i,j] ~ dbern(p[i,j]);
+				logit(p[i,j]) <- alpha[i] + alpha.c+ beta.c*(x[j]-xbar);
+ #               logit(p[i,j]) <- alpha.c+ beta * (x[j] - xbar);
+			}
+			alpha[i] ~ dnorm(0,tau.alpha);
+		}
+		
+		tau.alpha <- 1/(sigma.alpha*sigma.alpha);
+		
+		# Choice of prior of random effects variances  
+		# Prior 1: uniform on SD
+		
+		
+		#Prior 2: (not recommended)
+		#tau.alpha ~ dgamma(0.001,0.001)
+		#tau.beta ~ dgamma(0.001,0.001)
+		
+		alpha.c ~ dnorm(0.0,1.0E-6)	 	
+		beta.c ~ dnorm(0.0,1.0E-6)
+		sigma.alpha~ dunif(0,100)
+	#	alpha0 <- alpha.c - xbar * beta	
+	}
+	
+# data 
+
+# list(x = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19), xbar = 10, N = 2172, T = 19)
+						
+
+# initial values;
+
+# list(beta.c  = 0.197, alpha.c = 0.046, slope=0, sigma.alpha=2.187, sigma.beta.alpha=0.298)
+		
