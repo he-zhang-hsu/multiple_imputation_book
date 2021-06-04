@@ -1,9 +1,0 @@
-rm(list=ls());
-
-
-
-# income_weight=read.table(file="//cdc.gov/private/L728/wdq7/NHIS_imputation/data_for_book/rawincome.dat", na.strings=".");
-
-rands_weight=read.table(file="C:\\Users\\Guanghui He\\Personal\\Yulei\\research\\MIbook\\chapter10_survey\\program\\rands1_finalweight.txt", na.strings=".");
-
-hist(rands_weight$V1, main="", xlab="Survey Weights of RANDS 1");
