@@ -1,0 +1,43 @@
+# this model estimates the parameters of a logistic model with a mismeasured predictor
+# for missing values;
+MODEl   {			
+
+		# complete-data likelihood;
+			for( i in 1 : M ) {
+			# analysis mode;
+				y[i] ~ dbern(p[i]);
+				logit(p[i]) <-beta0+beta1*x1[i]+beta2*x2[i];
+			# covariate model;
+				x2[i] ~ dnorm(mu, tau);
+				x1[i] ~ dnorm(theta_12[i], psi_12);
+				theta_12[i] <- alpha0_12+alpha1_12*x2[i];
+			# measurement error model;
+				x1_o[i] ~ dnorm(theta_m1[i], psi_m1);
+				theta_m1[i] <- alpha0_m1+alpha1_m1*x1[i];  
+         
+                                x1_impute[i] <- x1[i];
+         		}
+					  
+		# sigma2<-1/tau;
+		
+			# prior for complete-model parameters;
+			beta0 ~ dnorm(0.0, 1.0E-3);
+			beta1 ~ dnorm(0.0, 1.0E-3);
+			beta2 ~ dnorm(0.0, 1.0E-3);
+			mu ~ dnorm(0.0, 1.0E-3);
+			alpha0_12 ~ dnorm(0.0, 1.0E-3);
+			alpha1_12 ~ dnorm(0.0, 1.0E-3);
+			alpha0_m1 ~ dnorm(0.0, 1.0E-3);
+			alpha1_m1~ dnorm(0.0, 1.0E-3);
+			
+			tau ~ dgamma(1.0E-3, 1.0E-3);
+			psi_12 ~ dgamma(1.0E-3, 1.0E-3);
+			psi_m1 ~ dgamma(1.0E-3, 1.0E-3);
+			
+}
+
+# data
+#  DATA list( M = 1000)	
+	
+# initial values
+# INITIAL VALUES list(beta0=-1, beta1=0.5, beta2=0.5, mu=0, tau=1, alpha0_12=0, alpha1_12=0, alpha0_m1=0, alpha1_m1=0, psi_12=1, psi_m1=1)
