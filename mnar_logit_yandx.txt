@@ -1,0 +1,33 @@
+# this model estimates the parameters of a logistic model with a mismeasured predictor
+# for missing values;
+MODEL   {			
+
+		# complete-data likelihood;
+			for( i in 1 : M ) {
+			# outcome model;
+				y_miss[i] ~ dnorm(mu[i], tau);
+				mu[i] <- beta0+beta1*(x[i]-mean(x[]))/sd(x[]);
+				
+			# response model
+			     m[i] ~ dbern(p[i]);
+				logit(p[i]) <-alpha0+alpha1*y_miss[i]+alpha2*(x[i]-mean(x[]))/sd(x[]);
+				
+                    y_impute[i] <- y_miss[i];
+         		}
+					  
+		
+			# prior for complete-model parameters;
+			beta0 ~ dnorm(0.0, 1.0E-3);
+			beta1 ~ dnorm(0.0, 1.0E-3);
+			alpha0 ~ dnorm(0.0, 1.0E-3);
+			alpha1 ~ dnorm(0.0, 1.0E-3);
+			alpha2 ~ dnorm(0.0, 1.0E-3);
+			tau ~ dgamma(1.0E-3, 1.0E-3);
+			
+}
+
+# data
+#  DATA list( M = 1000)	
+	
+# initial values
+# INITIAL VALUES list(beta0=0, beta1=0, tau=1, alpha0=0, alpha1=0, alpha2=0)
