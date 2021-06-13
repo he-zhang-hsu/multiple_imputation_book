@@ -1,0 +1,102 @@
+model
+{
+    for(i in 1:n)
+  {
+ k[i] <-1-2*ma1c[i];
+ c0[i] <-0;
+ c1[i] <-10000;
+ lower[i]<-min(k[i]*c0[i], k[i]*c1[i]);
+ upper[i] <- max(k[i]*c0[i], k[i]*c1[i]);
+
+# nonresponse model;
+ys[i]  ~ dnorm(mus[i], 1)I(lower[i],upper[i])
+mus[i] <- b[1]+b[2]*(Age[i]-mean(Age[]))/sd(Age[])+b[3]*(Diabetes[i]-mean(Diabetes[]))/sd(Diabetes[])+b[4]*(BMI[i]-mean(BMI[]))/sd(BMI[])+b[5]*(white[i]-mean(white[]))/sd(white[]);
+
+mu[i] <- a[1]+a[2]*(Age[i] -mean(Age[]))/sd(Age[])+a[3]*(Diabetes[i] -mean(Diabetes[]))/sd(Diabetes[])+a[4]*(BMI[i]-mean(BMI[]))/sd(BMI[])+a[5]*(white[i]-mean(white[]))/sd(white[]);                                                                                                
+z_resid[i] <- ys[i]-mus[i];
+
+ln_hga1c[i] ~ dnorm(mu_resid[i], tau);
+
+mu_resid[i] <- mu[i]+theta*z_resid[i];
+
+y_impute[i] <- ln_hga1c[i];
+
+} 
+
+rho <- -0.1
+
+theta <- rho*sqrt(1/(tau*(1-rho*rho)));
+
+                                        
+b[1]  ~ dnorm( 0, 1.0E-6)
+
+b[2]  ~ dnorm( 0, 1.0E-6)
+
+b[3]  ~ dnorm( 0, 1.0E-6)
+
+b[4]  ~ dnorm( 0, 1.0E-6)
+
+b[5]  ~ dnorm( 0, 1.0E-6)
+
+a[1]  ~ dnorm( 0, 1.0E-6)
+
+a[2]  ~ dnorm( 0, 1.0E-6)
+
+a[3]  ~ dnorm( 0, 1.0E-6)
+
+a[4]  ~ dnorm( 0, 1.0E-6)
+
+a[5]  ~ dnorm( 0, 1.0E-6)
+
+
+# rho   ~ dunif( -1, 1)
+
+# lsigma  ~ dnorm( 0, 1.0E-6)
+
+# sigma  <- exp( lsigma   )
+
+# sigma2 <- exp( lsigma*2 )
+
+# theta ~ dnorm(0, 1.0E-6);
+
+tau <- 1/(sigma*sigma);
+
+# tau ~ dgamma(1.0E-3, 1.0E-3);
+ 
+sigma ~ dunif(0, 100);
+
+# rho <- sqrt(theta*theta/(theta*theta+1/tau))
+
+b.cons  <- b[1]-b[2]*mean(Age[])/sd(Age[])-b[3]*mean(Diabetes[])/sd(Diabetes[])
+
+                                         -b[4]*mean(BMI[])/sd(BMI[])-b[5]*mean(white[])/sd(white[])
+
+b.Age <- b[2]/sd(Age[])
+
+b.Diabetes   <- b[3]/sd(Diabetes[])
+
+b.BMI   <- b[4]/sd(BMI[])
+
+b.white  <- b[5]/sd(white[])
+
+a.cons  <- a[1]-a[2]*mean(Age[])/sd(Age[])-a[3]*mean(Diabetes[])/sd(Diabetes[])
+
+                                         -a[4]*mean(BMI[])/sd(BMI[])-a[5]*mean(white[])/sd(white[])
+a.Age <- a[2]/sd(Age[])
+
+a.Diabetes <- a[3]/sd(Diabetes[])
+
+a.BMI   <- a[4]/sd(BMI[])
+
+a.white  <- a[5]/sd(white[])
+
+}                                                                                                
+
+# Data 1 uncensored 428. censored 325.
+
+#              list(n = 180)
+
+# Initial values list( a = c(1.742, -0.003, 0.005, 0.253, -0.005), b = c(0.216, -0.005, 0.741, # 0.016, 0.064), theta=0.15, tau=1); 
+#sigma=0.16)
+
+
