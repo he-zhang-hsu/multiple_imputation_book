@@ -175,9 +175,9 @@ Data1_delta_0=Data1[delta==0,];
 #m = 20
 # imp <- mice(Data1,m= m,maxit = 20, meth=c("","","pmm","","logreg","","",""));
 # predictormat is the matrix specifying which variables in the dataset are to be used as predictors in MICE
-# If the [I,j]a€?th element is 1, it means the j-th variable is used as a predictor for the ith variable;
-# if the [I,j]a€?th element is 0, it means that j-th variable is not used as a predictor for the ith variable.
-# because delta is constant in each of the dataset, it shouldna€?t be used as the predictor;
+# If the [I,j]aâ‚¬?th element is 1, it means the j-th variable is used as a predictor for the ith variable;
+# if the [I,j]aâ‚¬?th element is 0, it means that j-th variable is not used as a predictor for the ith variable.
+# because delta is constant in each of the dataset, it shouldnaâ‚¬?t be used as the predictor;
 predictormat=1-diag(1,ncol(Data1));
 # exclude delta as the predictor in MICE 
 predictormat[,2]=0;
@@ -651,6 +651,7 @@ write.csv(case,"summary_miaft.csv")
 
 # results are written into the file "summary_miaft.csv"
 # rows 1-6, 11-16, 21-26 correspond to the results in Table 8.9
+# need to remove all the files written out to the home directory after the simulation
 
 
 
