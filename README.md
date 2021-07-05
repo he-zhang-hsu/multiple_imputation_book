@@ -13,3 +13,5 @@ Example6.8.R is a simulation program. It calls the WinBUGS program logitmodel_mi
 Example6.9.R uses the dataset week30.txt. It calls the WinBUGS program mixturemodel_complete.txt and mixturemodel_impute.txt.
 
 For R programs that call WinBUGS (Examples 6.7.R, Example6.8.R, and Example6.9.R), the software WinBUGS is required to be installed. The simulation usually runs a long time. In the future we will provide the R NIMBLE version which does not require the WinBUGS software.
+
+Example6.7.nimble.R runs the simulation using R nimble. However the memory increases and slows down the computer as the simulation continues. This is because everytime it compiles. 
